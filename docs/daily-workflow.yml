@@ -1,0 +1,68 @@
+# Daily-run workflow TEMPLATE.
+#
+# Use this in a PRIVATE repo (your own copy/fork of this project). It commits your
+# seen-jobs state, tracker and digests back to the repo, so running it in a public
+# repo would publish your job search.
+#
+#   mkdir -p .github/workflows && cp docs/daily-workflow.yml .github/workflows/daily.yml
+#   cp config.example.yaml config.yaml          # then personalize it
+#   git add -f config.yaml .github/workflows/daily.yml && git commit -m "Daily run" && git push
+#
+# (config.yaml, data/ and digests/ are git-ignored so they can't leak from a public
+#  repo; in a private repo they're added with -f on purpose.)
+#
+name: Daily job digest
+
+on:
+  schedule:
+    - cron: "17 12 * * *"      # 12:17 UTC daily = 6:17 AM Central (7:17 AM during daylight time)
+  workflow_dispatch: {}        # "Run workflow" button for an on-demand run
+
+permissions:
+  contents: write              # commit seen-jobs state, tracker and digests
+  issues: write                # open a GitHub issue with each day's picks
+
+concurrency:
+  group: daily-digest
+  cancel-in-progress: false
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Find jobs
+        id: run
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          EMAIL_TO:  ${{ secrets.EMAIL_TO }}
+        run: python -m jobhunter
+
+      - name: Save state
+        run: |
+          git config user.name  "job-digest-bot"
+          git config user.email "job-digest-bot@users.noreply.github.com"
+          git add -f data digests        # -f: these are git-ignored for public safety
+          git diff --cached --quiet || git commit -m "Digest $(date -u +%F)"
+          git push
+
+      - name: Open issue with today's picks
+        if: steps.run.outputs.new_count != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create \
+            --title "🧭 ${{ steps.run.outputs.match_count }} new job matches — $(date +'%a %b %d')" \
+            --body-file digests/latest.md

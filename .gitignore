@@ -1,0 +1,10 @@
+# local environment
+.venv/
+__pycache__/
+.pytest_cache/
+.env
+
+# personal config and job-search data: keep these out of a public repo
+config.yaml
+data/
+digests/

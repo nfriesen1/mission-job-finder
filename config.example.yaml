@@ -1,0 +1,211 @@
+# ---------------------------------------------------------------------------
+# Example config. Copy to config.yaml (git-ignored) and make it yours:
+#   cp config.example.yaml config.yaml
+# The defaults target remote, mid-level, US, $100K+ full-stack/backend roles
+# at mission-driven organizations. Regexes are case-insensitive.
+# ---------------------------------------------------------------------------
+
+weekly_target: 3            # if fewer than this were delivered in the last 7 days,
+                            # the digest adds "near misses" so you never run dry
+max_per_day: 8              # cap on new matches shown in one digest
+max_near_misses: 4
+
+sources:
+  techjobsforgood: true
+  christiantechjobs: true
+  employers: true           # curated mission-driven employers' job boards (list below)
+  remotive: true
+  jobspy: false             # LinkedIn + Indeed via JobSpy — off by default; see README before enabling
+
+jobspy:
+  sites: [linkedin, indeed]
+  location: United States
+  hours_old: 72
+  results_per_search: 25
+  seconds_between_searches: 8   # raise this if you still see 429s
+  search_terms:                 # fewer searches = fewer blocks; reorder by priority
+    - software engineer nonprofit
+    - software engineer healthcare
+    - full stack engineer mission
+    - backend engineer civic tech
+
+filters:
+  min_salary: 100000                  # compared against the midpoint of the posted range
+  near_miss_salary_ratio: 0.9         # $90K–$100K midpoints become near misses
+  max_age_days: 30
+  min_years_required: 1               # "0–1 years" → flagged as possibly junior
+  max_years_required: 4               # "5 years" → near miss
+  max_years_required_hard: 6          # "6+ years" → rejected
+  senior_ok_if_years_at_most: 3       # a "Senior" title asking ≤3 yrs is treated as a near miss
+  min_skills_matched: 3
+  min_skill_score: 8
+  general_boards_require_impact: true # LinkedIn/Indeed/Remotive jobs need a mission keyword
+
+  title_must_match:
+    - '(software|full[- ]?stack|back[- ]?end|front[- ]?end|platform|application|web|api|cloud|product|forward[- ]deployed|integrations?|data|devops|infrastructure)\s*(engineer|developer|dev)\b'
+    - '\b(software engineer|software developer|software development engineer|swe|sde)\b'
+    - '\bfull[- ]?stack\b'
+    - '\bengineer\s*(ii|iii|2|3)\b'
+    - '\b(\.net|c#|typescript|node(\.js)?|react|java|python|aws)\s+(engineer|developer)'
+  title_exclude:
+    - '\b(sales|solutions|support|qa|quality|test|hardware|mechanical|electrical|civil|firmware|embedded)\b'
+    - '\b(machine learning|ml|ai research|research scientist|data scientist|data analyst)\b'
+    - '\b(ios|android|mobile|smart tv|game)\b'
+    - '\b(security engineer|network engineer|salesforce|servicenow|oracle|sap|workday)\b'
+  senior_title:
+    - '\b(senior|sr\.?|staff|principal|lead|manager|mgr|director|head|vp|vice president|chief|architect|distinguished|fellow)\b'
+    - '\b(engineer|developer)\s*(iv|v|4|5)\b'
+  junior_title:
+    - '\b(junior|jr\.?|intern|internship|entry[- ]level|new grad|graduate|apprentice|trainee|associate)\b'
+    - '\b(engineer|developer)\s*(i|1)\b'
+  not_full_time:
+    - '\b(contract|contractor|part[- ]time|temporary|temp|freelance|fractional|internship|1099|hourly consultant)\b'
+  non_us_locations:
+    - '\b(canada|uk|united kingdom|europe|emea|apac|asia|india|latam|latin america|brazil|mexico|germany|france|spain|portugal|poland|netherlands|ireland|australia|philippines|argentina|colombia|israel|singapore|japan)\b'
+  us_locations:
+    - '\b(us|u\.s\.|usa|united states|north america|americas|anywhere|worldwide|global)\b'
+  benefits_keywords:
+    - 'health insurance|medical|dental|vision|401\(?k\)?|retirement|pto|paid time off|parental leave|benefits'
+
+resume:
+  # Skill → weight. Replace with the skills on YOUR resume; heavier = closer to your daily work.
+  # Multi-word aliases (e.g. "event-driven", "ci/cd", "healthcare") are defined in filters.py.
+  skills:
+    typescript: 3
+    node.js: 3
+    c#: 3
+    .net: 3
+    aws: 3
+    event-driven: 3
+    dynamodb: 3
+    sqs: 2
+    sns: 2
+    lambda: 2
+    react: 2
+    postgresql: 2
+    sql: 1
+    terraform: 2
+    microservices: 2
+    rest: 1
+    full stack: 2
+    backend: 2
+    healthcare: 2
+    tdd: 1
+    jest: 1
+    ci/cd: 1
+    github actions: 1
+    opensearch: 1
+    python: 1
+    java: 1
+    spring boot: 1
+    graphql: 1
+    docker: 1
+    kubernetes: 1
+    javascript: 1
+    mysql: 1
+    angular: 1
+    twilio: 1
+    ai tools: 1
+
+impact_keywords:
+  - nonprofit
+  - non-profit
+  - mission
+  - social impact
+  - public benefit
+  - pbc
+  - b corp
+  - civic
+  - government
+  - public sector
+  - justice
+  - criminal
+  - health
+  - patients
+  - mental health
+  - education
+  - students
+  - climate
+  - clean energy
+  - sustainab
+  - equity
+  - underserved
+  - low-income
+  - poverty
+  - housing
+  - food
+  - accessibility
+  - faith
+  - christian
+  - ministry
+  - church
+  - humanitarian
+  - charity
+  - philanthrop
+
+# Mission-driven employers with public job APIs (verified Nov 2026).
+# Add any company: find its board URL (boards.greenhouse.io/<token>,
+# jobs.lever.co/<token>, jobs.ashbyhq.com/<token>) and add  <token>: Company Name  below.
+employers:
+  greenhouse:
+    recidiviz: Recidiviz
+    codeforamerica: Code for America
+    navapbc: Nava PBC
+    oddball: Oddball
+    civicactions: CivicActions
+    agilesix: Agile Six
+    aclu: ACLU
+    propublica: ProPublica
+    wikimedia: Wikimedia Foundation
+    mozilla: Mozilla
+    khanacademy: Khan Academy
+    coursera: Coursera
+    duolingo: Duolingo
+    newsela: Newsela
+    clever: Clever
+    codepath: CodePath
+    guild: Guild
+    donorschoose: DonorsChoose
+    givedirectly: GiveDirectly
+    thorn: Thorn
+    omadahealth: Omada Health
+    twinhealth: Twin Health
+    mavenclinic: Maven Clinic
+    modernhealth: Modern Health
+    swordhealth: Sword Health
+    talkspace: Talkspace
+    oscar: Oscar Health
+    zocdoc: Zocdoc
+    uniteus: Unite Us
+    carbondirect: Carbon Direct
+    palmetto: Palmetto
+    redwoodmaterials: Redwood Materials
+  lever:
+    arcadia: Arcadia
+    includedhealth: Included Health
+    canvasmedical: Canvas Medical
+    nomihealth: Nomi Health
+    vida: Vida Health
+  ashby:
+    virtahealth: Virta Health
+    abridge: Abridge
+    commure: Commure
+    headway: Headway
+    rula: Rula
+    alma: Alma
+    grow-therapy: Grow Therapy
+    equip: Equip Health
+    talkiatry: Talkiatry
+    nabla: Nabla
+    maven: Maven
+    benchling: Benchling
+    watershed: Watershed
+    span: Span
+    twelve: Twelve
+    sylvera: Sylvera
+    classdojo: ClassDojo
+    outschool: Outschool
+    propel: Propel
+    quorum: Quorum
+    givebutter: Givebutter
+    ad-hoc: Ad Hoc
