@@ -35,6 +35,10 @@ class Job:
     soft_fails: list[str] = field(default_factory=list)
     hard_fails: list[str] = field(default_factory=list)
 
+    def __post_init__(self):
+        from .textutil import clean_url   # local import: textutil imports nothing from models
+        self.url = clean_url(self.url)
+
     @property
     def key(self) -> str:
         company = re.sub(r"\b(inc|llc|pbc|corp|corporation|co|the|ltd)\b", "", norm(self.company))
