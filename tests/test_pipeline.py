@@ -223,3 +223,17 @@ def test_jobspy_stops_when_blocked(monkeypatch):
     jobs, errs = S.fetch_jobspy(None, {"jobspy": {"sites": ["linkedin", "indeed"],
                                                  "search_terms": ["a", "b", "c"], "seconds_between_searches": 0}})
     assert calls == ["linkedin", "indeed"] and len(errs) == 2 and "rate-limited" in errs[0]
+
+
+@pytest.mark.parametrize("raw,clean", [
+    ("https://example.jibeapply.com/jobs/1/job?utm_source=indeed_integration&iis=Job%20Board&iisn=Indeed"
+     "&indeed-apply-token=0123456789abcdef", "https://example.jibeapply.com/jobs/1/job"),
+    ("https://www.indeed.com/viewjob?jk=1a2b3c&utm_campaign=x", "https://www.indeed.com/viewjob?jk=1a2b3c"),
+    ("https://boards.greenhouse.io/acme/jobs/1?gh_jid=1&gclid=zz", "https://boards.greenhouse.io/acme/jobs/1?gh_jid=1"),
+    ("https://www.linkedin.com/jobs/view/9?currentJobId=9&trk=public_jobs&refId=x",
+     "https://www.linkedin.com/jobs/view/9?currentJobId=9"),
+    ("https://jobs.ashbyhq.com/acme/abc#apply", "https://jobs.ashbyhq.com/acme/abc"),
+    ("https://techjobsforgood.com/jobs/1/", "https://techjobsforgood.com/jobs/1/"),
+])
+def test_job_urls_are_stripped_of_tracking(raw, clean):
+    assert Job("s", "Engineer", "Acme", raw).url == clean

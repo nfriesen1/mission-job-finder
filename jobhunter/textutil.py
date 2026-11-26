@@ -5,6 +5,8 @@ import html
 import re
 from datetime import datetime, timedelta, timezone
 
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+
 from bs4 import BeautifulSoup
 
 
@@ -93,3 +95,23 @@ def min_years_required(text: str) -> int | None:
             if 0 < n <= 20:
                 found.append(n)
     return min(found) if found else None
+
+
+# Query parameters that only track where a click came from. Some carry per-click
+# tokens (e.g. Indeed's indeed-apply-token) that secret scanners flag, and all of
+# them make one job look like several. Parameters that identify the job itself
+# (Indeed's jk=, Greenhouse's gh_jid=, LinkedIn's currentJobId=) are kept.
+_TRACKING_PARAMS = {
+    "iis", "iisn", "gclid", "gbraid", "wbraid", "fbclid", "msclkid", "mc_cid", "mc_eid",
+    "trk", "trkinfo", "trackingid", "refid", "ref", "_hsenc", "_hsmi", "src", "source",
+}
+
+
+def clean_url(url: str) -> str:
+    """Strip tracking parameters (utm_*, *token*, click ids, ...) and the fragment from a URL."""
+    if not url or "?" not in url and "#" not in url:
+        return url
+    parts = urlsplit(url)
+    kept = [(k, v) for k, v in parse_qsl(parts.query, keep_blank_values=True)
+            if not (k.lower().startswith("utm_") or "token" in k.lower() or k.lower() in _TRACKING_PARAMS)]
+    return urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(kept), ""))
